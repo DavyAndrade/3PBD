@@ -31,9 +31,8 @@ INSERT INTO
     PROFISSIONAL (id_profissional, nome, id_especialidade)
 VALUES
     (1, 'Mariana Souza', 1), -- cabelereira
-    (2, 'Carla Mendes', 2);
-
--- esteticista
+    (2, 'Carla Mendes', 2);  -- esteticista
+    
 -- 4) Inserir Serviços
 INSERT INTO
     SERVICO (
