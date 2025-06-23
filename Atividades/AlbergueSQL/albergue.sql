@@ -1,91 +1,85 @@
 -- Criação do banco de dados
-CREATE DATABASE albergue_db;
+CREATE DATABASE IF NOT EXISTS albergue_db;
 USE albergue_db;
 
--- Tabela de Clientes
-CREATE TABLE Cliente (
-    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+-- Tabela CLIENTE
+CREATE TABLE IF NOT EXISTS cliente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    telefone VARCHAR(20),
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+    email VARCHAR(100) UNIQUE NOT NULL,
+    telefone VARCHAR(20) NOT NULL
 );
 
--- Tabela de Características de Quartos
-CREATE TABLE CaracteristicaQuarto (
-    id_caracteristica_quarto INT AUTO_INCREMENT PRIMARY KEY,
-    descricao VARCHAR(100) NOT NULL UNIQUE
-);
-
--- Tabela de Quartos
-CREATE TABLE Quarto (
-    id_quarto INT AUTO_INCREMENT PRIMARY KEY,
-    numero VARCHAR(10) NOT NULL UNIQUE,
+-- Tabela QUARTO
+CREATE TABLE IF NOT EXISTS quarto (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numero VARCHAR(10) UNIQUE NOT NULL,
     capacidade INT NOT NULL CHECK (capacidade IN (4, 8, 12)),
-    tem_banheiro BOOLEAN NOT NULL
+    tem_banheiro BOOLEAN GENERATED ALWAYS AS (IF(capacidade != 8, TRUE, FALSE)) VIRTUAL
 );
 
--- Tabela Associativa: Quarto-Características
-CREATE TABLE QuartoCaracteristica (
-    id_quarto INT,
-    id_caracteristica_quarto INT,
-    PRIMARY KEY (id_quarto, id_caracteristica_quarto),
-    FOREIGN KEY (id_quarto) REFERENCES Quarto(id_quarto) ON DELETE CASCADE,
-    FOREIGN KEY (id_caracteristica_quarto) REFERENCES CaracteristicaQuarto(id_caracteristica_quarto) ON DELETE CASCADE
+-- Tabela PECULIARIDADE
+CREATE TABLE IF NOT EXISTS peculiaridade (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Tabela de Características de Vagas
-CREATE TABLE CaracteristicaVaga (
-    id_caracteristica_vaga INT AUTO_INCREMENT PRIMARY KEY,
-    descricao VARCHAR(100) NOT NULL UNIQUE
+-- Tabela VAGA
+CREATE TABLE IF NOT EXISTS vaga (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(255) NOT NULL,
+    quarto_id INT NOT NULL,
+    FOREIGN KEY (quarto_id) REFERENCES quarto(id) ON DELETE CASCADE
 );
 
--- Tabela de Vagas
-CREATE TABLE Vaga (
-    id_vaga INT AUTO_INCREMENT PRIMARY KEY,
-    id_quarto INT NOT NULL,
-    numero_cama VARCHAR(10) NOT NULL,
-    posicao ENUM('superior', 'inferior', 'única') NULL,
-    FOREIGN KEY (id_quarto) REFERENCES Quarto(id_quarto) ON DELETE CASCADE,
-    UNIQUE (id_quarto, numero_cama)
-);
-
--- Tabela Associativa: Vaga-Características
-CREATE TABLE VagaCaracteristica (
-    id_vaga INT,
-    id_caracteristica_vaga INT,
-    PRIMARY KEY (id_vaga, id_caracteristica_vaga),
-    FOREIGN KEY (id_vaga) REFERENCES Vaga(id_vaga) ON DELETE CASCADE,
-    FOREIGN KEY (id_caracteristica_vaga) REFERENCES CaracteristicaVaga(id_caracteristica_vaga) ON DELETE CASCADE
-);
-
--- Tabela de Reservas
-CREATE TABLE Reserva (
-    id_reserva INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
+-- Tabela RESERVA
+CREATE TABLE IF NOT EXISTS reserva (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     data_inicio DATE NOT NULL,
-    numero_dias INT NOT NULL,
-    status ENUM('PENDENTE', 'CONFIRMADA', 'CANCELADA') DEFAULT 'PENDENTE',
-    data_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente) ON DELETE CASCADE
+    data_fim DATE NOT NULL,
+    data_cancelamento DATETIME DEFAULT NULL,
+    cliente_id INT NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES cliente(id) ON DELETE CASCADE,
+    CONSTRAINT check_cancelamento CHECK (
+        data_cancelamento IS NULL OR 
+        DATEDIFF(data_inicio, DATE(data_cancelamento)) >= 3
+    )
 );
 
--- Tabela Associativa: Reserva-Vagas
-CREATE TABLE ReservaVaga (
-    id_reserva INT,
-    id_vaga INT,
-    PRIMARY KEY (id_reserva, id_vaga),
-    FOREIGN KEY (id_reserva) REFERENCES Reserva(id_reserva) ON DELETE CASCADE,
-    FOREIGN KEY (id_vaga) REFERENCES Vaga(id_vaga) ON DELETE CASCADE
+-- Tabela de junção RESERVA_VAGA
+CREATE TABLE IF NOT EXISTS reserva_vaga (
+    reserva_id INT NOT NULL,
+    vaga_id INT NOT NULL,
+    PRIMARY KEY (reserva_id, vaga_id),
+    FOREIGN KEY (reserva_id) REFERENCES reserva(id) ON DELETE CASCADE,
+    FOREIGN KEY (vaga_id) REFERENCES vaga(id) ON DELETE CASCADE
 );
 
--- Tabela de Pagamentos
-CREATE TABLE Pagamento (
-    id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
-    id_reserva INT NOT NULL UNIQUE,
+-- Tabela de junção VAGA_PECULIARIDADE
+CREATE TABLE IF NOT EXISTS vaga_peculiaridade (
+    vaga_id INT NOT NULL,
+    peculiaridade_id INT NOT NULL,
+    PRIMARY KEY (vaga_id, peculiaridade_id),
+    FOREIGN KEY (vaga_id) REFERENCES vaga(id) ON DELETE CASCADE,
+    FOREIGN KEY (peculiaridade_id) REFERENCES peculiaridade(id) ON DELETE CASCADE
+);
+
+-- Tabela de junção QUARTO_PECULIARIDADE
+CREATE TABLE IF NOT EXISTS quarto_peculiaridade (
+    quarto_id INT NOT NULL,
+    peculiaridade_id INT NOT NULL,
+    PRIMARY KEY (quarto_id, peculiaridade_id),
+    FOREIGN KEY (quarto_id) REFERENCES quarto(id) ON DELETE CASCADE,
+    FOREIGN KEY (peculiaridade_id) REFERENCES peculiaridade(id) ON DELETE CASCADE
+);
+
+-- Tabela PAGAMENTO
+CREATE TABLE IF NOT EXISTS pagamento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     valor DECIMAL(10,2) NOT NULL,
-    data_pagamento DATETIME DEFAULT CURRENT_TIMESTAMP,
-    numero_cartao VARCHAR(20) NOT NULL,
-    status ENUM('PENDENTE', 'APROVADO', 'RECUSADO') DEFAULT 'PENDENTE',
-    FOREIGN KEY (id_reserva) REFERENCES Reserva(id_reserva) ON DELETE CASCADE
+    status_pag VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
+    data_pag DATETIME DEFAULT NULL,
+    forma_pag VARCHAR(20) NOT NULL DEFAULT 'CARTAO_CREDITO',
+    reserva_id INT NOT NULL UNIQUE,
+    FOREIGN KEY (reserva_id) REFERENCES reserva(id) ON DELETE CASCADE
 );

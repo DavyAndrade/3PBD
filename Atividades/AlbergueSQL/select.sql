@@ -1,46 +1,146 @@
--- Selecionar todos os clientes
-SELECT * FROM Cliente;
+-- Todos os clientes
+SELECT id, nome, email, telefone FROM cliente;
 
--- Selecionar um cliente específico
-SELECT * FROM Cliente WHERE email = 'joao@email.com';
+-- Cliente específico por ID
+SELECT id, nome, email, telefone 
+FROM cliente 
+WHERE id = 1;
 
--- Selecionar todos os quartos com suas características
-SELECT
-    q.*,
-    GROUP_CONCAT(cq.descricao) AS caracteristicas
-FROM
-    Quarto q
-    LEFT JOIN QuartoCaracteristica qc ON q.id_quarto = qc.id_quarto
-    LEFT JOIN CaracteristicaQuarto cq ON qc.id_caracteristica_quarto = cq.id_caracteristica_quarto
-GROUP BY
-    q.id_quarto;
+-- Todos os quartos
+SELECT id, numero, capacidade, tem_banheiro 
+FROM quarto;
 
--- Selecionar todas as vagas de um quarto com características
-SELECT
-    v.id_vaga,
-    v.id_quarto,
-    v.numero_cama,
-    v.posicao,
-    GROUP_CONCAT(cv.descricao) AS caracteristicas
-FROM
-    Vaga v
-    LEFT JOIN VagaCaracteristica vc ON v.id_vaga = vc.id_vaga
-    LEFT JOIN CaracteristicaVaga cv ON vc.id_caracteristica_vaga = cv.id_caracteristica_vaga
-WHERE
-    v.id_quarto = 1
-GROUP BY
-    v.id_vaga;
+-- Quarto específico por ID
+SELECT id, numero, capacidade, tem_banheiro 
+FROM quarto 
+WHERE id = 1;
 
--- Selecionar reserva com detalhes
-SELECT r.*, c.nome, c.email, p.valor, p.status AS status_pagamento
-FROM Reserva r
-JOIN Cliente c ON r.id_cliente = c.id_cliente
-JOIN Pagamento p ON r.id_reserva = p.id_reserva
-WHERE r.id_reserva = 1;
+-- Quartos com banheiro
+SELECT id, numero, capacidade 
+FROM quarto 
+WHERE tem_banheiro = TRUE;
 
--- Selecionar vagas de uma reserva
-SELECT v.*, q.numero AS numero_quarto
-FROM ReservaVaga rv
-JOIN Vaga v ON rv.id_vaga = v.id_vaga
-JOIN Quarto q ON v.id_quarto = q.id_quarto
-WHERE rv.id_reserva = 1;
+-- Todas as peculiaridades
+SELECT id, descricao FROM peculiaridade;
+
+-- Peculiaridade específica por ID
+SELECT id, descricao 
+FROM peculiaridade 
+WHERE id = 1;
+
+-- Todas as vagas
+SELECT v.id, v.descricao, q.numero AS quarto, q.tem_banheiro
+FROM vaga v
+JOIN quarto q ON v.quarto_id = q.id;
+
+-- Vaga específica por ID
+SELECT v.id, v.descricao, q.numero AS quarto, q.tem_banheiro
+FROM vaga v
+JOIN quarto q ON v.quarto_id = q.id
+WHERE v.id = 1;
+
+-- Características de uma vaga específica
+SELECT p.descricao AS caracteristica
+FROM vaga_peculiaridade vp
+JOIN peculiaridade p ON vp.peculiaridade_id = p.id
+WHERE vp.vaga_id = 1;
+
+-- Todas as reservas
+SELECT 
+    r.id,
+    r.data_inicio,
+    r.data_fim,
+    c.nome AS cliente,
+    COUNT(rv.vaga_id) AS total_vagas,
+    p.status_pag
+FROM reserva r
+JOIN cliente c ON r.cliente_id = c.id
+LEFT JOIN reserva_vaga rv ON r.id = rv.reserva_id
+LEFT JOIN pagamento p ON r.id = p.reserva_id
+GROUP BY r.id;
+
+-- Reserva específica por ID
+SELECT 
+    r.id,
+    r.data_inicio,
+    r.data_fim,
+    c.nome AS cliente,
+    c.email,
+    p.valor,
+    p.status_pag,
+    p.forma_pag
+FROM reserva r
+JOIN cliente c ON r.cliente_id = c.id
+LEFT JOIN pagamento p ON r.id = p.reserva_id
+WHERE r.id = 1;
+
+-- Vagas de uma reserva específica
+SELECT v.id, v.descricao, q.numero AS quarto
+FROM reserva_vaga rv
+JOIN vaga v ON rv.vaga_id = v.id
+JOIN quarto q ON v.quarto_id = q.id
+WHERE rv.reserva_id = 1;
+
+-- Todas as reservas
+SELECT 
+    r.id,
+    r.data_inicio,
+    r.data_fim,
+    c.nome AS cliente,
+    COUNT(rv.vaga_id) AS total_vagas,
+    p.status_pag
+FROM reserva r
+JOIN cliente c ON r.cliente_id = c.id
+LEFT JOIN reserva_vaga rv ON r.id = rv.reserva_id
+LEFT JOIN pagamento p ON r.id = p.reserva_id
+GROUP BY r.id;
+
+-- Reserva específica por ID
+SELECT 
+    r.id,
+    r.data_inicio,
+    r.data_fim,
+    c.nome AS cliente,
+    c.email,
+    p.valor,
+    p.status_pag,
+    p.forma_pag
+FROM reserva r
+JOIN cliente c ON r.cliente_id = c.id
+LEFT JOIN pagamento p ON r.id = p.reserva_id
+WHERE r.id = 1;
+
+-- Vagas de uma reserva específica
+SELECT v.id, v.descricao, q.numero AS quarto
+FROM reserva_vaga rv
+JOIN vaga v ON rv.vaga_id = v.id
+JOIN quarto q ON v.quarto_id = q.id
+WHERE rv.reserva_id = 1;
+
+-- Todos os pagamentos
+SELECT 
+    p.id,
+    p.valor,
+    p.status_pag,
+    p.data_pag,
+    p.forma_pag,
+    r.id AS reserva_id,
+    c.nome AS cliente
+FROM pagamento p
+JOIN reserva r ON p.reserva_id = r.id
+JOIN cliente c ON r.cliente_id = c.id;
+
+-- Pagamento específico por ID
+SELECT 
+    p.id,
+    p.valor,
+    p.status_pag,
+    p.data_pag,
+    p.forma_pag,
+    r.id AS reserva_id,
+    c.nome AS cliente
+FROM pagamento p
+JOIN reserva r ON p.reserva_id = r.id
+JOIN cliente c ON r.cliente_id = c.id
+WHERE p.id = 1;
+

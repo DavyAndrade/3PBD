@@ -1,9 +1,29 @@
--- Cancelar reserva (atualiza status)
-UPDATE Reserva SET status = 'CANCELADA' WHERE id_reserva = 1;
+-- CLIENTE
+DELETE FROM cliente WHERE id = 1;
 
--- Remover característica de uma vaga
-DELETE FROM VagaCaracteristica 
-WHERE id_vaga = 1 AND id_caracteristica_vaga = 3;
+-- QUARTO
+DELETE FROM quarto WHERE id = 1;
 
--- Excluir cliente (cascateia para reservas e pagamentos)
-DELETE FROM Cliente WHERE id_cliente = 1;
+-- PECULIARIDADE
+DELETE FROM peculiaridade WHERE id = 1;
+
+-- VAGA
+DELETE FROM vaga WHERE id = 1;
+
+-- RESERVA
+DELETE FROM reserva WHERE id = 1;
+
+-- PAGAMENTO
+DELETE FROM pagamento WHERE id = 1;
+
+-- RESERVA_VAGA
+DELETE FROM reserva_vaga
+WHERE reserva_id = 1 AND vaga_id = 1;
+
+-- VAGA_PECULIARIDADE
+DELETE FROM vaga_peculiaridade
+WHERE vaga_id = 1 AND peculiaridade_id = 1;
+
+-- QUARTO_PECULIARIDADE
+DELETE FROM quarto_peculiaridade
+WHERE quarto_id = 1 AND peculiaridade_id = 1;
