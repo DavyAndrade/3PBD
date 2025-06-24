@@ -10,7 +10,7 @@ WHERE id = 1;
 
 -- PECULIARIDADE
 UPDATE peculiaridade
-SET descricao = 'Sol da Manhã'
+SET descricao = 'Aaaaa'
 WHERE id = 1;
 
 -- VAGA
